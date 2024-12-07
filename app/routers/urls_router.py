@@ -1,24 +1,26 @@
-from ..configs.db_config import db
+from ..configs.db_config import MongoDbDatabase
 from ..models.models import URLCreation, URLDetails, URLResponse, URLStatistics
-from fastapi import APIRouter, Request,HTTPException
-from pymongo.errors import PyMongoError
-from pydantic import ValidationError
-from ..utils.utils import generate_unique_short_code
-from datetime import datetime
+from ..services.urls_service import create_short_url
+from fastapi import APIRouter, HTTPException, status
+
 router = APIRouter()
-collection = db['urls_database']
+
+db = MongoDbDatabase(databaseName="url_shortner_service_database", collectionName="urls_collection")
 
 @router.post('/shorten', response_model=URLResponse)
 async def shorten_url(payload: URLCreation):
-    shortCode = payload.customAlias if payload.customAlias else generate_unique_short_code(1,3)
-    longUrl = payload.longUrl
-    shortUrl = f"mylink.ly/{shortCode}"
-    created = datetime.now()
-    document = {
-        "shortUrl": shortUrl,
-        "longUrl": longUrl,
-        "created": created
-    }
-    result = await collection.insert_one({shortCode:document})
-
-    return URLResponse(shortUrl=shortUrl, qrCode="example", created=created)
+    if not payload.longUrl:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The long URL is required."
+        )
+    try:
+        result = await create_short_url(payload.longUrl, payload.customAlias)
+        return URLResponse(shortUrl=result['shortUrl'], qrCode=result['qrCode'], created=result['created'])
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Unexpected error: {str(e)}"
+        )
