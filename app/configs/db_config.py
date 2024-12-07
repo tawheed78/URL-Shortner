@@ -27,5 +27,7 @@ class MongoDbDatabase:
     
     def get_collection(self):
         return self.collection
-        
+    
+db_instance = MongoDbDatabase(databaseName="url_shortner_database", collectionName="url_collection")
+
     

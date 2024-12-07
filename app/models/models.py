@@ -12,10 +12,11 @@ class URLResponse(BaseModel):
     created : datetime
 
 class URLDetails(BaseModel):
-    longUrl: str
     shortUrl: str
+    longUrl: str
+    qrCode: str
     created: datetime
-    clicks: int
+    
 
 class URLStatistics(BaseModel):
     longUrl: str
@@ -23,3 +24,8 @@ class URLStatistics(BaseModel):
     clicks: int
     created: datetime
     lastAccessed: Optional[datetime]
+
+class QRCode(BaseModel):
+    shortUrl:str
+    longUrl:str
+    qrCode:str

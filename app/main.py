@@ -1,4 +1,6 @@
 from fastapi import FastAPI
+
+from .configs.db_config import MongoDbDatabase
 from .routers.urls_router import router as urls_router
 
 
