@@ -1,6 +1,7 @@
 from ..configs.db_config import MongoDbDatabase
 from ..models.models import URLCreation, URLDetails, URLResponse, URLStatistics
 from ..services.urls_service import create_short_url
+from ..services.qr_service import generateQRCode
 from fastapi import APIRouter, HTTPException, status
 
 router = APIRouter()
