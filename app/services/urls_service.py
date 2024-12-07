@@ -15,6 +15,18 @@ async def custom_alias_exists(customAlias):
     except PyMongoError as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
+async def valid_shortUrl(code):
+    try:
+        res = await collection.find_one({"_id": code})
+        if res:
+            document = {"_id": code}
+            update_query = {"$inc": {"clicks": 1}, "$set": {"lastAccessed": datetime.now()}}
+            await collection.update_one(document, update_query)
+            return res['longUrl']
+        else:
+            return False
+    except PyMongoError as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 async def create_short_url(longUrl, customAlias):
     if customAlias:
@@ -40,6 +52,7 @@ async def create_short_url(longUrl, customAlias):
         return {"shortUrl":shortUrl, "qrCode":qrCode, "created":created}
     except PyMongoError as e:
         raise HTTPException(status_code=500, detail=f"Error creating URL: {str(e)}")
+
     
 async def list_urls():
     try:

@@ -1,12 +1,13 @@
 from typing import List
 
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from ..configs.db_config import MongoDbDatabase
 from ..models.models import URLCreation, URLDetails, URLResponse, URLStatistics
-from ..services.urls_service import create_short_url, list_urls, get_url_details, remove_url
-from fastapi import APIRouter, HTTPException, status
+from ..services.urls_service import create_short_url, list_urls, get_url_details, remove_url, valid_shortUrl
+from fastapi import APIRouter, HTTPException, Request, status
 
 router = APIRouter()
+redirect_router = APIRouter()
 
 @router.post('/shorten', response_model=URLResponse)
 async def shorten_url(payload: URLCreation):
@@ -20,6 +21,28 @@ async def shorten_url(payload: URLCreation):
         return URLResponse(shortUrl=result['shortUrl'], qrCode=result['qrCode'], created=result['created'])
     except HTTPException as e:
         raise e
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Unexpected error: {str(e)}"
+        )
+    
+@redirect_router.get('/{code}')
+async def redirect_shortUrl(code, request: Request):
+    
+    if not code:
+        raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="The long URL is required."
+            )
+    try:
+        response = await valid_shortUrl(code)
+        if not response:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+            detail= "No such URL exists."                    
+            )
+        else:
+            return RedirectResponse(url=response)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
