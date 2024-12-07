@@ -2,6 +2,7 @@ import time
 import random
 import snowflake
 import string
+from user_agents import parse
 
 BASE62_ALPHABET = string.digits + string.ascii_lowercase + string.ascii_uppercase
 
@@ -35,3 +36,14 @@ def generate_unique_short_code(datacenter_ID, machine_ID):
     snowflake_id = generate_custom_snowflake_id(datacenter_ID, machine_ID)
     short_code = convert_to_base62_encoding(snowflake_id)
     return short_code
+
+def get_browser_and_device(user_agent):
+    user_agent_data = parse(user_agent)
+    browser = user_agent_data.browser.family.lower()
+    if user_agent_data.is_mobile:
+        device = "mobile"
+    elif user_agent_data.is_tablet:
+        device = "tablet"
+    else:
+        device = "pc"
+    return browser, device

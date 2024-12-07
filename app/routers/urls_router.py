@@ -3,8 +3,9 @@ from typing import List
 from fastapi.responses import JSONResponse, RedirectResponse
 from ..configs.db_config import MongoDbDatabase
 from ..models.models import URLCreation, URLDetails, URLResponse, URLStatistics
-from ..services.urls_service import create_short_url, list_urls, get_url_details, remove_url, valid_shortUrl
+from ..services.urls_service import create_short_url, list_urls, get_url_details, remove_url, process_short_url_click
 from fastapi import APIRouter, HTTPException, Request, status
+from user_agents import parse
 
 router = APIRouter()
 redirect_router = APIRouter()
@@ -29,14 +30,14 @@ async def shorten_url(payload: URLCreation):
     
 @redirect_router.get('/{code}')
 async def redirect_shortUrl(code, request: Request):
-    
     if not code:
         raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="The long URL is required."
             )
     try:
-        response = await valid_shortUrl(code)
+        user_agent = request.headers.get('User-Agent')
+        response = await process_short_url_click(code, user_agent)
         if not response:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
             detail= "No such URL exists."                    

@@ -1,7 +1,7 @@
 from fastapi import HTTPException, status
-from datetime import datetime
+import datetime
 
-from ..utils.utils import generate_unique_short_code
+from ..utils.utils import generate_unique_short_code, get_browser_and_device
 from ..configs.db_config import db_instance
 from pymongo.errors import PyMongoError
 from ..services.qr_service import generateQRCode
@@ -15,12 +15,21 @@ async def custom_alias_exists(customAlias):
     except PyMongoError as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
-async def valid_shortUrl(code):
+async def process_short_url_click(code, user_agent):
     try:
         res = await collection.find_one({"_id": code})
         if res:
+            browser, device = get_browser_and_device(user_agent)
+
             document = {"_id": code}
-            update_query = {"$inc": {"clicks": 1}, "$set": {"lastAccessed": datetime.now()}}
+            update_query = {
+            "$inc": {
+                "clicks": 1,
+                f"analytics.device_clicks.{device}": 1,
+                f"analytics.browser_clicks.{browser}": 1,
+            },
+            "$set": {"analytics.lastAccessed": datetime.datetime.now()}
+        }
             await collection.update_one(document, update_query)
             return res['longUrl']
         else:
@@ -37,7 +46,7 @@ async def create_short_url(longUrl, customAlias):
             )
     shortCode = customAlias if customAlias else generate_unique_short_code(1,3)
     shortUrl = f"https://mylink.ly/{shortCode}"
-    created = datetime.now()
+    created = datetime.datetime.now()
     qrCode = generateQRCode(shortUrl)
     try:
         collection.insert_one({

@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Dict, Optional
 from datetime import datetime
 
 class URLCreation(BaseModel):
@@ -17,13 +17,17 @@ class URLDetails(BaseModel):
     qrCode: str
     created: datetime
     
+class URLAnalytics(BaseModel):
+    device_clicks: Dict[str, int]
+    browser_clicks: Dict[str, int]
+    lastAccessed: Optional[datetime]
 
 class URLStatistics(BaseModel):
     longUrl: str
     shortUrl: str
     clicks: int
     created: datetime
-    lastAccessed: Optional[datetime]
+    analytics: URLAnalytics
 
 class QRCode(BaseModel):
     shortUrl:str
