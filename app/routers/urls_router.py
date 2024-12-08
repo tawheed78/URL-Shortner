@@ -75,6 +75,8 @@ async def list_URLs(request: Request):
     """
     try:
         urls = await fetch_all_urls()
+        for url in urls:
+            url['created'] = url['created'] - timedelta(hours=5, minutes=30)
         return urls
     except Exception as e:
         raise HTTPException(

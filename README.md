@@ -10,7 +10,7 @@ The URL Shortener Service is a web application designed to transform long URLs i
 - **QR Code Generation**: Automatically generates QR codes for each shortened URL, enabling offline access via mobile devices.
 - **Conflict Management**: Ensures that custom aliases are unique and not reused.
 - **Error Handling**: Comprehensive exception handling to ensure smooth user experience and informative feedback.
-- **Rate Limiting**: Prevents abuse by limiting the number of PDF uploads per minute.
+- **Rate Limiting**: Prevents abuse by limiting the number of requests per minute.
 - **API Documentation**: Interactive API documentation is provided via Swagger UI and Redoc.
 
 ---
@@ -112,6 +112,11 @@ GET /api/urls/:code/qr
 #### Endpoint: POST /api/urls/
 Users submit a request containing the longURL and a customAlias(Optional). 
 If the CustomALias is unique, then it is used as the short code in the shortURL.
+If no customAlias is provided:
+- The service uses **Twitter's Snowflake ALgorithm** to generate unique short codes.
+- It creates a unique ID from the parameters such as Data Center ID, Machine ID, and epoch time(which is incremental thus generating unique IDs).
+- This unique ID is passed through base62 conversion to generate the unique shortcode and thus diminishes the possibility of collision.
+
 For Bulk link creation the data can be input in the form of an array including a list of input objects.
 The system validates the input and creates the shortURL and inserts in the database.
 The response includes the newly created shortURLs.
