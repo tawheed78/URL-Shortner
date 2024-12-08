@@ -18,6 +18,11 @@ async def get_url_statistics(request: Request, code: str):
         )
     try:
         response = await url_stats(code)
+        if not response['analytics']:
+            raise HTTPException(
+            status_code=status.HTTP_204_NO_CONTENT,
+            detail="No analytics data yet"
+        )
         return URLStatistics(**response)
     except Exception as e:
         raise HTTPException(
