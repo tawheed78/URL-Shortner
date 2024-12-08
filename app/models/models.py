@@ -1,10 +1,19 @@
-from pydantic import BaseModel
-from typing import Dict, Optional
+import re
+from pydantic import BaseModel, HttpUrl, ValidationInfo, ValidationError, field_validator
+from typing import Dict, List, Optional
 from datetime import datetime
 
 class URLCreation(BaseModel):
-    longUrl : str
+    longUrl : HttpUrl
     customAlias : Optional[str] = None
+
+    @field_validator("customAlias") 
+    def validate_custom_alias(cls, v: str, info: ValidationInfo) -> str:
+        if v and not re.match(r'^[a-zA-Z0-9_-]+$', v):
+            raise ValueError("CustomAlias must only include alphabets, numbers and hyphen.")
+        return v
+class BulkURLCreation(BaseModel):
+    urls: List[URLCreation] 
 
 class URLResponse(BaseModel):
     shortUrl : str

@@ -1,5 +1,5 @@
 from fastapi import HTTPException, status
-import datetime
+from datetime import datetime, timedelta
 
 from ..utils.utils import generate_unique_short_code, get_browser_and_device
 from ..configs.db_config import db_instance
@@ -37,7 +37,7 @@ async def process_short_url_click(code, user_agent):
     except PyMongoError as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
-async def create_short_url(longUrl, customAlias):
+async def shorten_URL(longUrl, customAlias):
     if customAlias:
         if await custom_alias_exists(customAlias):
             raise HTTPException(
@@ -46,24 +46,28 @@ async def create_short_url(longUrl, customAlias):
             )
     shortCode = customAlias if customAlias else generate_unique_short_code(1,3)
     shortUrl = f"https://mylink.ly/{shortCode}"
-    created = datetime.datetime.now()
+    # created = datetime.datetime.now(datetime.timezone.utc)
+    created = datetime.now()
     qrCode = generateQRCode(shortUrl)
+    expireAfter = timedelta(seconds=120)
+    expiration_time = created + expireAfter
     try:
         collection.insert_one({
             "_id": shortCode,
             "shortUrl": shortUrl,
-            "longUrl": longUrl,
+            "longUrl": str(longUrl),
             "clicks": 0,
             "lastAccessed": None,
             "qrCode": qrCode,
-            "created": created
+            "created": created,
+            'expireAfter': expiration_time
         })
         return {"shortUrl":shortUrl, "qrCode":qrCode, "created":created}
     except PyMongoError as e:
         raise HTTPException(status_code=500, detail=f"Error creating URL: {str(e)}")
 
     
-async def list_urls():
+async def fetch_all_urls():
     try:
         cursor = collection.find({})
         urls = await cursor.to_list(length=None)
@@ -71,7 +75,7 @@ async def list_urls():
     except PyMongoError as e:
         raise HTTPException(status_code=500, detail=f"Error fetching all the URLs: {str(e)}")
     
-async def get_url_details(code):
+async def fetch_URL_details(code):
     try:
         url = await collection.find_one({"_id": code})
         return url

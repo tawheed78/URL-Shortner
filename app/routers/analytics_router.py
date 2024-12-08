@@ -8,7 +8,7 @@ router = APIRouter()
 collection = db_instance.get_collection()
 
 @router.get('/{code}/stats', response_model=URLStatistics)
-async def get_url_stats(code):
+async def get_URL_statistics(code):
     if not code:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -24,7 +24,7 @@ async def get_url_stats(code):
         )
     
 @router.get('/{code}/qr', response_model=QRCode)
-async def get_qr(code):
+async def get_QR_code(code):
     if not code:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

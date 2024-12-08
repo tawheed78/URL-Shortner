@@ -1,25 +1,25 @@
-from typing import List
-
+from typing import List, Union
 from fastapi.responses import JSONResponse, RedirectResponse
-from ..configs.db_config import MongoDbDatabase
-from ..models.models import URLCreation, URLDetails, URLResponse, URLStatistics
-from ..services.urls_service import create_short_url, list_urls, get_url_details, remove_url, process_short_url_click
+from ..models.models import URLCreation, URLDetails, URLResponse, BulkURLCreation
+from ..services.urls_service import shorten_URL, fetch_all_urls, fetch_URL_details, remove_url, process_short_url_click
 from fastapi import APIRouter, HTTPException, Request, status
-from user_agents import parse
+
 
 router = APIRouter()
 redirect_router = APIRouter()
 
-@router.post('/shorten', response_model=URLResponse)
-async def shorten_url(payload: URLCreation):
-    if not payload.longUrl:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="The long URL is required."
-        )
+@router.post('/', response_model=Union[URLResponse, List[URLResponse]])
+async def create_short_URL(payload: Union[URLCreation, BulkURLCreation]):
     try:
-        result = await create_short_url(payload.longUrl, payload.customAlias)
-        return URLResponse(shortUrl=result['shortUrl'], qrCode=result['qrCode'], created=result['created'])
+        if isinstance(payload, URLCreation):
+            result = await shorten_URL(payload.longUrl, payload.customAlias)
+            return URLResponse(shortUrl=result['shortUrl'], qrCode=result['qrCode'], created=result['created'])
+        elif isinstance(payload, BulkURLCreation):
+            urls_list = []
+            for url_data in payload.urls:
+                result = await shorten_URL(url_data.longUrl, url_data.customAlias)
+                urls_list.append(URLResponse(shortUrl=result['shortUrl'], qrCode=result['qrCode'], created=result['created']))
+            return urls_list
     except HTTPException as e:
         raise e
     except Exception as e:
@@ -27,9 +27,10 @@ async def shorten_url(payload: URLCreation):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Unexpected error: {str(e)}"
         )
+
     
 @redirect_router.get('/{code}')
-async def redirect_shortUrl(code, request: Request):
+async def redirect_shortURL(code, request: Request):
     if not code:
         raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -51,9 +52,9 @@ async def redirect_shortUrl(code, request: Request):
         )
     
 @router.get('/', response_model=List[URLDetails])
-async def fetch_urls():
+async def list_URLs():
     try:
-        urls = await list_urls()
+        urls = await fetch_all_urls()
         return urls
     except Exception as e:
         raise HTTPException(
@@ -62,9 +63,9 @@ async def fetch_urls():
         )
     
 @router.get('/{code}', response_model= URLDetails)
-async def get_url(code):
+async def get_URL_details(code):
     try:
-        url = await get_url_details(code)
+        url = await fetch_URL_details(code)
         if not url:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
             detail= "URL not found."                    
@@ -77,7 +78,7 @@ async def get_url(code):
         )
     
 @router.delete('/{code}')
-async def delete_url(code):
+async def delete_URL(code):
     try:
         result = await remove_url(code)
         if result:
