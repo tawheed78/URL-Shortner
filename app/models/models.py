@@ -12,6 +12,7 @@ class URLCreation(BaseModel):
         if v and not re.match(r'^[a-zA-Z0-9_-]+$', v):
             raise ValueError("CustomAlias must only include alphabets, numbers and hyphen.")
         return v
+    
 class BulkURLCreation(BaseModel):
     urls: List[URLCreation] 
 
