@@ -1,10 +1,7 @@
 from fastapi import FastAPI
-
-from .configs.db_config import MongoDbDatabase
 from .routers.urls_router import router as urls_router
 from .routers.urls_router import redirect_router as redirect_router
 from .routers.analytics_router import router as analytics_router
-
 
 app = FastAPI()
 

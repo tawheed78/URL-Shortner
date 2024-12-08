@@ -4,7 +4,7 @@ from fastapi import HTTPException, Request
 from app.configs.redis_config import redis_client as r
 
 
-async def is_rate_limited(ip_address: str, limit: int, time_window: int) -> bool:
+async def is_rate_limited(ip_address: str, limit: int, time_window: int):
     "Check if the given IP address has exceeded the rate limit."
 
     current_time = int(time.time())

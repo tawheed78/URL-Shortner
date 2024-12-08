@@ -4,7 +4,7 @@ import os
 from ..utils.utils import generate_unique_short_code, get_browser_and_device
 from ..configs.db_config import db_instance
 from pymongo.errors import PyMongoError
-from ..services.qr_service import generateQRCode
+from ..services.qr_service import generate_qr_code
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -13,7 +13,9 @@ BASE_URL = os.getenv("BASE_URL")
 
 collection = db_instance.get_collection()
 
+
 async def custom_alias_exists(customAlias):
+
     try:
         res = await collection.find_one({"_id": customAlias})
         return res is not None
@@ -52,9 +54,8 @@ async def shorten_URL(longUrl, customAlias):
     shortCode = customAlias if customAlias else generate_unique_short_code(1,3)
     shortUrl = f"{BASE_URL}/{shortCode}"
     created = datetime.now()
-    qrCode = generateQRCode(shortUrl)
-    expireAfter = timedelta(seconds=120)
-    expiration_time = created + expireAfter
+    utc_time = created - timedelta(hours=5, minutes=30)
+    qrCode = generate_qr_code(shortUrl)
     try:
         collection.insert_one({
             "_id": shortCode,
@@ -63,7 +64,7 @@ async def shorten_URL(longUrl, customAlias):
             "clicks": 0,
             "lastAccessed": None,
             "qrCode": qrCode,
-            "created": created
+            "created": utc_time
         })
         return {"shortUrl":shortUrl, "qrCode":qrCode, "created":created}
     except PyMongoError as e:

@@ -1,3 +1,6 @@
+"""
+Redis Configuration Module
+"""
 import os
 from dotenv import load_dotenv
 import redis.asyncio as aioredis
@@ -5,11 +8,10 @@ import redis.asyncio as aioredis
 load_dotenv()
 
 host = os.getenv("HOST")
-port = os.getenv("PORT")
 
 "Create Redis connection pool"
 redis_client = aioredis.from_url(
-  "redis://localhost:6379",
+  host,
   decode_responses=True,
   max_connections=10
 )
