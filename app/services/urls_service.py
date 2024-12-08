@@ -1,10 +1,15 @@
 from fastapi import HTTPException, status
 from datetime import datetime, timedelta
-
+import os
 from ..utils.utils import generate_unique_short_code, get_browser_and_device
 from ..configs.db_config import db_instance
 from pymongo.errors import PyMongoError
 from ..services.qr_service import generateQRCode
+from dotenv import load_dotenv
+
+load_dotenv()
+
+BASE_URL = os.getenv("BASE_URL")
 
 collection = db_instance.get_collection()
 
@@ -28,7 +33,7 @@ async def process_short_url_click(code, user_agent):
                 f"analytics.device_clicks.{device}": 1,
                 f"analytics.browser_clicks.{browser}": 1,
             },
-            "$set": {"analytics.lastAccessed": datetime.datetime.now()}
+            "$set": {"analytics.lastAccessed": datetime.now()}
         }
             await collection.update_one(document, update_query)
             return res['longUrl']
@@ -45,7 +50,7 @@ async def shorten_URL(longUrl, customAlias):
                 detail=f"Custom alias '{customAlias}' is already in use."
             )
     shortCode = customAlias if customAlias else generate_unique_short_code(1,3)
-    shortUrl = f"https://mylink.ly/{shortCode}"
+    shortUrl = f"{BASE_URL}/{shortCode}"
     created = datetime.now()
     qrCode = generateQRCode(shortUrl)
     expireAfter = timedelta(seconds=120)
@@ -58,14 +63,13 @@ async def shorten_URL(longUrl, customAlias):
             "clicks": 0,
             "lastAccessed": None,
             "qrCode": qrCode,
-            "created": created,
-            'expireAfter': expiration_time
+            "created": created
         })
         return {"shortUrl":shortUrl, "qrCode":qrCode, "created":created}
     except PyMongoError as e:
         raise HTTPException(status_code=500, detail=f"Error creating URL: {str(e)}")
 
-    
+   
 async def fetch_all_urls():
     try:
         cursor = collection.find({})

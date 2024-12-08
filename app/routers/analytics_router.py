@@ -1,14 +1,18 @@
-from fastapi import APIRouter, HTTPException, status
+import json
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from ..models.models import URLStatistics, QRCode
 from ..configs.db_config import db_instance
 from ..services.analytics_service import url_stats, get_qr_code
+from ..services.rate_limiting_service import rate_limit
+from datetime import datetime
 
 router = APIRouter()
 
 collection = db_instance.get_collection()
 
 @router.get('/{code}/stats', response_model=URLStatistics)
-async def get_URL_statistics(code):
+@rate_limit(limit=25, time_window=60)
+async def get_URL_statistics(request:Request, code:str):
     if not code:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -22,9 +26,11 @@ async def get_URL_statistics(code):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Unexpected error: {str(e)}"
         )
+
     
 @router.get('/{code}/qr', response_model=QRCode)
-async def get_QR_code(code):
+@rate_limit(limit=5, time_window=60)
+async def get_QR_code(request: Request, code:str):
     if not code:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
