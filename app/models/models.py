@@ -1,10 +1,10 @@
 import re
-from pydantic import BaseModel, HttpUrl, ValidationInfo, ValidationError, field_validator
+from pydantic import BaseModel, AnyHttpUrl, ValidationInfo, ValidationError, field_validator
 from typing import Dict, List, Optional
 from datetime import datetime
 
 class URLCreation(BaseModel):
-    longUrl : HttpUrl
+    longUrl : AnyHttpUrl
     customAlias : Optional[str] = None
 
     @field_validator("customAlias") 

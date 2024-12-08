@@ -46,7 +46,6 @@ async def shorten_URL(longUrl, customAlias):
             )
     shortCode = customAlias if customAlias else generate_unique_short_code(1,3)
     shortUrl = f"https://mylink.ly/{shortCode}"
-    # created = datetime.datetime.now(datetime.timezone.utc)
     created = datetime.now()
     qrCode = generateQRCode(shortUrl)
     expireAfter = timedelta(seconds=120)
