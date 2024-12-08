@@ -2,7 +2,6 @@ from datetime import datetime
 import json
 from typing import List, Union
 from fastapi.responses import JSONResponse, RedirectResponse
-import redis
 from ..models.models import URLCreation, URLDetails, URLResponse, BulkURLCreation
 from ..services.urls_service import shorten_URL, fetch_all_urls, fetch_URL_details, remove_url, process_short_url_click
 from ..services.rate_limiting_service import rate_limit
@@ -114,7 +113,7 @@ async def get_URL_details(request: Request, code:str, redis: aioredis.Redis = De
    
 @router.delete('/{code}')
 @rate_limit(limit=30, time_window=60) 
-async def delete_URL(code):
+async def delete_URL(request: Request, code:str):
     try:
         result = await remove_url(code)
         if result:

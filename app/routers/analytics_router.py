@@ -1,10 +1,8 @@
-import json
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, HTTPException, Request, status
 from ..models.models import URLStatistics, QRCode
 from ..configs.db_config import db_instance
 from ..services.analytics_service import url_stats, get_qr_code
 from ..services.rate_limiting_service import rate_limit
-from datetime import datetime
 
 router = APIRouter()
 
