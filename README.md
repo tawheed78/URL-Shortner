@@ -109,7 +109,7 @@ GET /api/urls/:code/qr
 ### URL Operations
 
 ### Creating a Short URL
-Endpoint: POST /api/urls/
+#### Endpoint: POST /api/urls/
 Users submit a request containing the longURL and a customAlias(Optional). 
 If the CustomALias is unique, then it is used as the short code in the shortURL.
 For Bulk link creation the data can be input in the form of an array including a list of input objects.
@@ -117,24 +117,24 @@ The system validates the input and creates the shortURL and inserts in the datab
 The response includes the newly created shortURLs.
 
 ### List URLs
-Endpoint: GET /api/urls
+#### Endpoint: GET /api/urls
 Users can fetch the list of all the shortURLs available in the database.
 
 ### Get URL Details
-Endpoint: GET /api/urls/:code
+#### Endpoint: GET /api/urls/:code
 Users can retrieve the details of a particular shortURL with the help of the shortURL code.
 
 ### Deleting a shortURL
-Endpoint: DELETE /api/urls/:code
+#### Endpoint: DELETE /api/urls/:code
 Users can delete a specific shortURL by its code.
 The system marks the shortURL for deletion, and it is removed from the database.
 
 ### Get URL Statistics
-Endpoint: GET /api/urls/:code/stats
+#### Endpoint: GET /api/urls/:code/stats
 User can fetch the statistics of a particular shortURL which includes clicks, clicks with respect to devices and browsers as well as the last accessed time of the shortURL.
 
-#### GET QR Code
-Endpoint: /api/urls/:code/qr
+### GET QR Code
+#### Endpoint: /api/urls/:code/qr
 This is used to retrieve the QR Code of a shortURL by providing the code.
 
 
